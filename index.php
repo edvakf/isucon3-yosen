@@ -171,7 +171,7 @@ dispatch_get('/', function() {
 
         $memos = array();
         if (!empty($ids)) {
-            $stmt = $db->prepare('SELECT id, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE id IN ('.str_repeat('?,',count($ids)-1)."?)");
+            $stmt = $db->prepare('SELECT id, user, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE id IN ('.str_repeat('?,',count($ids)-1)."?)");
             $stmt->execute($ids);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
