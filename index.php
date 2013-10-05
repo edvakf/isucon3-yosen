@@ -176,17 +176,34 @@ dispatch_get('/recent/:page', function(){
         $ids[] = (int)$row['id'];
     }
 
-    $stmt = $db->prepare("SELECT id,user,is_private,created_at,updated_at FROM memos WHERE id IN (".str_repeat('?,',99)."?)");
-    $stmt->execute($ids);
-    $memos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($ids)) {
+        $stmt = $db->prepare("SELECT * FROM memos WHERE id IN (".str_repeat('?,',count($ids)-1)."?)");
+        $stmt->execute($ids);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach($memos as &$memo) {
-        $stmt = $db->prepare('SELECT username FROM users WHERE id = :id');
-        $stmt->bindValue(':id', $memo["user"]);
-        $stmt->execute();
+        $memos_hash = array();
+        $user_ids = array();
+        foreach($rows as $row) {
+            $memos_hash[(int)$row['id']] = $row;
+            $user_ids[] = (int)$row['user'];
+        }
+        $memos = array();
+        foreach ($ids as $id) {
+            $memos[] = $memos_hash[$id];
+        }
 
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $memo["username"] = $result["username"];
+        $stmt = $db->prepare('SELECT id,username FROM users WHERE id IN ('.str_repeat('?,',count($user_ids)-1)."?)");
+        $stmt->execute($user_ids);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $user_name_hash = array();
+        foreach ($rows as $row) {
+            $user_name_hash[(int)$row['id']] = $row['username']; 
+        }
+
+        foreach ($memos as &$memo) {
+            $memo["username"] = $user_name_hash[(int)$memo['user']];
+        }
     }
 
     set('memos', $memos);
