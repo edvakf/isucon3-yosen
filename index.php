@@ -167,8 +167,17 @@ dispatch_get('/recent/:page', function(){
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $total = $result["total"];
 
-    $stmt = $db->prepare("SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET " . $page * 100);
+    $stmt = $db->prepare("SELECT id FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET " . $page * 100);
     $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $ids = array();
+    foreach($rows as $row) {
+        $ids[] = (int)$row['id'];
+    }
+
+    $stmt = $db->prepare("SELECT id,user,is_private,created_at,updated_at FROM memos WHERE id IN (".str_repeat('?,',99)."?)");
+    $stmt->execute($ids);
     $memos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach($memos as &$memo) {
