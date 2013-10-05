@@ -122,36 +122,24 @@ function markdown($content) {
 }
 
 dispatch_get('/', function() {
-    $index_vars = apc_fetch('index_vars');
-    if ($index_vars && isset($index_vars['memos']) && isset($index_vars['total'])) {
-        $memos = $index_vars['memos'];
-        $total = $index_vars['total'];
-    } else {
+    $db = option('db_conn');
 
-        $db = option('db_conn');
+    $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total = $result["total"];
 
-        $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
+    $stmt = $db->prepare('SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100');
+    $stmt->execute();
+    $memos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach($memos as &$memo) {
+        $stmt = $db->prepare('SELECT username FROM users WHERE id = :id');
+        $stmt->bindValue(':id', $memo["user"]);
         $stmt->execute();
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $total = $result["total"];
-
-        $stmt = $db->prepare('SELECT * FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100');
-        $stmt->execute();
-        $memos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach($memos as &$memo) {
-            $stmt = $db->prepare('SELECT username FROM users WHERE id = :id');
-            $stmt->bindValue(':id', $memo["user"]);
-            $stmt->execute();
-
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $memo["username"] = $result["username"];
-        }
-
-        $index_vars = array();
-        $index_vars['memos'] = $memos;
-        $index_vars['total'] = $total;
-        apc_store('index_vars', $index_vars, 30);
+        $memo["username"] = $result["username"];
     }
 
     set('memos', $memos);
