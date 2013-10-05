@@ -143,14 +143,14 @@ function markdown($content) {
 dispatch_get('/', function() {
     $db = option('db_conn');
 
-    $total = apc_fetch('memo_private_total');
+    $total = apc_fetch('memo_public_total');
 
     if ($total === false) {
         $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $total = $result["total"];
-        apc_store('memo_private_total', $total, 2);
+        apc_store('memo_public_total', $total, 2);
     }
 
     $stmt = $db->prepare("SELECT id FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100");
@@ -204,14 +204,14 @@ dispatch_get('/recent/:page', function(){
     $db = option('db_conn');
 
     $page = params('page');
-    $total = apc_fetch('memo_private_total');
+    $total = apc_fetch('memo_public_total');
 
     if ($total === false) {
         $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $total = $result["total"];
-        apc_store('memo_private_total', $total, 2);
+        apc_store('memo_public_total', $total, 2);
     }
 
     $stmt = $db->prepare("SELECT id FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET " . $page * 100);
@@ -330,7 +330,7 @@ dispatch_post('/memo', function() {
     $stmt->execute();
 
     $memo_id = $db->lastInsertId();
-    $total = apc_delete('memo_private_total');
+    $total = apc_delete('memo_public_total');
     return redirect('/memo/' . $memo_id);
 });
 
