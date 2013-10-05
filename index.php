@@ -190,15 +190,15 @@ dispatch_get('/recent/:page', function(){
     $db = option('db_conn');
 
     $page = params('page');
-    $total = apc_fetch('memo_private_total');
+    //$total = apc_fetch('memo_private_total');
 
-    if ($total === false) {
+    //if ($total === false) {
         $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $total = $result["total"];
-        apc_store('memo_private_total', $total, 2);
-    }
+        //apc_store('memo_private_total', $total, 2);
+    //}
 
     $stmt = $db->prepare("SELECT id FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100 OFFSET " . $page * 100);
     $stmt->execute();
