@@ -131,10 +131,14 @@ function markdown($content) {
     $metadata = stream_get_meta_data($fh);
     $filename = $metadata['uri'];
     $html = apc_fetch($filename);
-    if (!$html) {
-        fwrite($fh, $content);
-        $html = shell_exec("../bin/markdown " . $filename);
-        fclose($fh);
+    //if (!$html) {
+    if (true) {
+        require_once 'parsedown/Parsedown.php';
+        //fwrite($fh, $content);
+        //$html = shell_exec("../bin/markdown " . $filename);
+        $html = Parsedown::instance()->parse($content);
+        //fclose($fh);
+        //var_dump($html);exit;
         apc_store($filename, $html, 10);
     }
     return $html;
