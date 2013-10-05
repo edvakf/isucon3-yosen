@@ -164,7 +164,7 @@ dispatch_get('/', function() {
 
     $memos = array();
     if (!empty($ids)) {
-        $stmt = $db->prepare("SELECT * FROM memos WHERE id IN (".str_repeat('?,',count($ids)-1)."?)");
+        $stmt = $db->prepare('SELECT id, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE id IN ('.str_repeat('?,',count($ids)-1)."?)");
         $stmt->execute($ids);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -225,7 +225,7 @@ dispatch_get('/recent/:page', function(){
 
     $memos = array();
     if (!empty($ids)) {
-        $stmt = $db->prepare("SELECT * FROM memos WHERE id IN (".str_repeat('?,',count($ids)-1)."?)");
+        $stmt = $db->prepare('SELECT id, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE id IN ('.str_repeat('?,',count($ids)-1)."?)");
         $stmt->execute($ids);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -307,7 +307,7 @@ dispatch_get('/mypage', function() {
 
     $user = get('user');
 
-    $stmt = $db->prepare('SELECT id, content, is_private, created_at, updated_at FROM memos WHERE user = :user ORDER BY created_at DESC');
+    $stmt = $db->prepare('SELECT id, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE user = :user ORDER BY created_at DESC');
     $stmt->bindValue(':user', $user['id']);
     $stmt->execute();
     $memos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -338,7 +338,7 @@ dispatch_get('/memo/:id', function() {
     $db = option('db_conn');
 
     $user = get('user');
-    $stmt = $db->prepare('SELECT id, user, content, is_private, created_at, updated_at FROM memos WHERE id = :id');
+    $stmt = $db->prepare('SELECT * FROM memos WHERE id = :id');
     $stmt->bindValue(':id', params('id'));
     $stmt->execute();
     $memo = $stmt->fetch(PDO::FETCH_ASSOC);
