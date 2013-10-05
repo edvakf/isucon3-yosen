@@ -128,7 +128,7 @@ function markdown($content) {
 dispatch_get('/', function() {
     $db = option('db_conn');
 
-    $total = acp_fetch('memo_private_total');
+    $total = apc_fetch('memo_private_total');
 
     if ($total === false) {
         $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
