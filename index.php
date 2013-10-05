@@ -13,10 +13,14 @@ function configure()
     $env = getenv('ISUCON_ENV');
     if (!$env) $env = 'local';
 
-    $file = realpath(__DIR__ . '/../config/' . $env . '.json');
-    $fh = fopen($file, 'r');
-    $config = json_decode(fread($fh, filesize($file)), true);
-    fclose($fh);
+    $config = array(
+         "database" => array(
+             "dbname"   => "isucon",
+             "host"     => "localhost",
+             "port"     => 3306,
+             "username" => "isucon",
+             "password" => "",
+         ));
 
     $db = null;
     try {
@@ -124,10 +128,15 @@ function markdown($content) {
 dispatch_get('/', function() {
     $db = option('db_conn');
 
-    $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
-    $stmt->execute();
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $total = $result["total"];
+    $total = acp_fetch('memo_private_total');
+
+    if ($total === false) {
+        $stmt = $db->prepare('SELECT count(*) AS total FROM memos WHERE is_private=0');
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $total = $result["total"];
+        apc_store('memo_private_total', $total, 2);
+    }
 
     $stmt = $db->prepare('SELECT m.*,u.username FROM memos AS m LEFT JOIN users AS u ON m.user = u.id WHERE m.is_private=0 ORDER BY m.created_at DESC, m.id DESC LIMIT 100');
     $stmt->execute();
