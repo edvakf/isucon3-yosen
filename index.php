@@ -119,9 +119,13 @@ function markdown($content) {
     $fh = tmpfile();
     $metadata = stream_get_meta_data($fh);
     $filename = $metadata['uri'];
-    fwrite($fh, $content);
-    $html = shell_exec("../bin/markdown " . $filename);
-    fclose($fh);
+    $html = apc_fetch($filename);
+    if (!$html) {
+        fwrite($fh, $content);
+        $html = shell_exec("../bin/markdown " . $filename);
+        fclose($fh);
+        apc_store($filename, $html, 10);
+    }
     return $html;
 }
 
