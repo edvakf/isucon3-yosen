@@ -88,11 +88,22 @@ function filter_get_user($route) {
 
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 
-    $stmt = $db->prepare('SELECT * FROM users WHERE id = :id');
-    $stmt->bindValue(':id', $user_id);
-    $stmt->execute();
+    $user = null;
+    if ($user_id) {
+        $user = apc_fetch('user_' . $user_id);
 
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user) {
+            $stmt = $db->prepare('SELECT * FROM users WHERE id = :id');
+            $stmt->bindValue(':id', $user_id);
+            $stmt->execute();
+
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user) {
+                apc_store('user_' . $user_id, $user, 30);
+            }
+        }
+    }
     set('user', $user);
 
     if ($user) {
