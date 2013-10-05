@@ -1,0 +1,23 @@
+Listen 0.0.0.0:5000
+
+<Directory /home/isucon/webapp/php>
+    Options FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
+<VirtualHost 0.0.0.0:5000>
+    ServerName localhost
+    DocumentRoot /home/isucon/webapp/php
+    DirectoryIndex index.php
+
+    RewriteEngine on
+    RewriteRule ^/img/(.*)$ /public/img/$1 [L]
+    RewriteRule ^/css/(.*)$ /public/css/$1 [L]
+    RewriteRule ^/js/(.*)$ /public/js/$1 [L]
+    RewriteRule ^(.*)$ /index.php?$1 [L]
+
+    LogFormat "time:%t\tforwardedfor:%{X-Forwarded-For}i\thost:%h\treq:%r\tstatus:%>s\tsize:%b\treferer:%{Referer}i\tua:%{User-Agent}i\treqtime_microsec:%D\tcache:%{X-Cache}o\truntime:%{X-Runtime}o\tvhost:%{Host}i" ltsv
+    CustomLog isucon_php_log ltsv
+</VirtualHost>
+
