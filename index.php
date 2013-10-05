@@ -319,6 +319,7 @@ dispatch_post('/memo', function() {
     $stmt->execute();
 
     $memo_id = $db->lastInsertId();
+    $total = apc_delete('memo_private_total');
     return redirect('/memo/' . $memo_id);
 });
 
