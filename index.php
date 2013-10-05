@@ -300,7 +300,6 @@ dispatch_post('/signin', function() {
         $stmt->bindValue(':id', $user['id']);
         $stmt->execute();
 
-        usleep(500000);
         return redirect('/mypage');
 
     } else {
