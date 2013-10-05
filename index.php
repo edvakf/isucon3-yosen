@@ -147,6 +147,7 @@ dispatch_get('/', function() {
         $ids[] = (int)$row['id'];
     }
 
+    $memos = array();
     if (!empty($ids)) {
         $stmt = $db->prepare("SELECT * FROM memos WHERE id IN (".str_repeat('?,',count($ids)-1)."?)");
         $stmt->execute($ids);
@@ -207,6 +208,7 @@ dispatch_get('/recent/:page', function(){
         $ids[] = (int)$row['id'];
     }
 
+    $memos = array();
     if (!empty($ids)) {
         $stmt = $db->prepare("SELECT * FROM memos WHERE id IN (".str_repeat('?,',count($ids)-1)."?)");
         $stmt->execute($ids);
