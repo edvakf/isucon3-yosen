@@ -4,7 +4,6 @@
 //ini_set( 'session.save_path', 'localhost:11211' );
 
 require_once 'limonade/lib/limonade.php';
-require_once 'session_apc.php';
 
 function configure()
 {
@@ -376,7 +375,7 @@ dispatch_get('/memo/:id', function() {
     return html('memo.html.php');
 });
 
-new Session_APC;
+
 run();
 
 
