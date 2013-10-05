@@ -153,44 +153,50 @@ dispatch_get('/', function() {
         apc_store('memo_public_total', $total, 2);
     }
 
-    $stmt = $db->prepare("SELECT id FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100");
-    $stmt->execute();
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $memos = apc_fetch('index_memos');
 
-    $ids = array();
-    foreach($rows as $row) {
-        $ids[] = (int)$row['id'];
-    }
-
-    $memos = array();
-    if (!empty($ids)) {
-        $stmt = $db->prepare('SELECT id, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE id IN ('.str_repeat('?,',count($ids)-1)."?)");
-        $stmt->execute($ids);
+    if ($memos === false) {
+        $stmt = $db->prepare("SELECT id FROM memos WHERE is_private=0 ORDER BY created_at DESC, id DESC LIMIT 100");
+        $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $memos_hash = array();
-        $user_ids = array();
+        $ids = array();
         foreach($rows as $row) {
-            $memos_hash[(int)$row['id']] = $row;
-            $user_ids[] = (int)$row['user'];
+            $ids[] = (int)$row['id'];
         }
+
         $memos = array();
-        foreach ($ids as $id) {
-            $memos[] = $memos_hash[$id];
+        if (!empty($ids)) {
+            $stmt = $db->prepare('SELECT id, substring_index(content,"\n",1) as content, is_private, created_at, updated_at FROM memos WHERE id IN ('.str_repeat('?,',count($ids)-1)."?)");
+            $stmt->execute($ids);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $memos_hash = array();
+            $user_ids = array();
+            foreach($rows as $row) {
+                $memos_hash[(int)$row['id']] = $row;
+                $user_ids[] = (int)$row['user'];
+            }
+            $memos = array();
+            foreach ($ids as $id) {
+                $memos[] = $memos_hash[$id];
+            }
+
+            $stmt = $db->prepare('SELECT id,username FROM users WHERE id IN ('.str_repeat('?,',count($user_ids)-1)."?)");
+            $stmt->execute($user_ids);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $user_name_hash = array();
+            foreach ($rows as $row) {
+                $user_name_hash[(int)$row['id']] = $row['username']; 
+            }
+
+            foreach ($memos as &$memo) {
+                $memo["username"] = $user_name_hash[(int)$memo['user']];
+            }
         }
 
-        $stmt = $db->prepare('SELECT id,username FROM users WHERE id IN ('.str_repeat('?,',count($user_ids)-1)."?)");
-        $stmt->execute($user_ids);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $user_name_hash = array();
-        foreach ($rows as $row) {
-            $user_name_hash[(int)$row['id']] = $row['username']; 
-        }
-
-        foreach ($memos as &$memo) {
-            $memo["username"] = $user_name_hash[(int)$memo['user']];
-        }
+        apc_store('index_items', $memos, 5);
     }
 
     set('memos', $memos);
@@ -331,6 +337,7 @@ dispatch_post('/memo', function() {
 
     $memo_id = $db->lastInsertId();
     $total = apc_delete('memo_public_total');
+    $total = apc_delete('index_memos');
     return redirect('/memo/' . $memo_id);
 });
 
