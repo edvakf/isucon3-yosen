@@ -352,25 +352,21 @@ dispatch_get('/memo/:id', function() {
         $cond = "AND is_private=0";
     }
 
-    $stmt = $db->prepare("SELECT * FROM memos WHERE user = :user " . $cond . " ORDER BY created_at");
+    $sql = 'SELECT id FROM memos WHERE user = :user ' . $cond . ' AND created_at < :created_at ORDER BY created_at DESC LIMIT 1';
+    $stmt = $db->prepare($sql);
     $stmt->bindValue(':user', $memo['user']);
+    $stmt->bindValue(':created_at', $memo['created_at']);
     $stmt->execute();
-    $memos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $older = $row ? $row : null;
 
-    $older = null;
-    $newer = null;
-    for ($i = 0; $i < count($memos); $i++) {
-        if ($memos[$i]['id'] == $memo['id']) {
-            if ($i > 0) {
-                $older = $memos[$i - 1];
-            }
-            if ($i < count($memos) - 1) {
-                $newer = $memos[$i + 1];
-            }
-
-
-        }
-    }   
+    $sql = 'SELECT id FROM memos WHERE user = :user ' . $cond . ' AND created_at > :created_at ORDER BY created_at ASC LIMIT 1';
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(':user', $memo['user']);
+    $stmt->bindValue(':created_at', $memo['created_at']);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $newer = $row ? $row : null;
 
     set('memo', $memo);
     set('older', $older);
