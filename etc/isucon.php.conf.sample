@@ -18,6 +18,6 @@ Listen 0.0.0.0:5000
     RewriteRule ^(.*)$ /index.php?$1 [L]
 
     LogFormat "time:%t\tforwardedfor:%{X-Forwarded-For}i\thost:%h\treq:%r\tstatus:%>s\tsize:%b\treferer:%{Referer}i\tua:%{User-Agent}i\treqtime_microsec:%D\tcache:%{X-Cache}o\truntime:%{X-Runtime}o\tvhost:%{Host}i" ltsv
-    CustomLog isucon_php_log ltsv
+    CustomLog logs/isucon_php_log ltsv
 </VirtualHost>
 

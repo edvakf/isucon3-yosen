@@ -1,7 +1,7 @@
 <?php
 
-ini_set( 'session.save_handler', 'memcached' );
-ini_set( 'session.save_path', 'localhost:11211' );
+//ini_set( 'session.save_handler', 'memcached' );
+//ini_set( 'session.save_path', 'localhost:11211' );
 
 require_once 'limonade/lib/limonade.php';
 
@@ -196,7 +196,7 @@ dispatch_get('/signin', function() {
 });
 
 dispatch_post('/signout', function() {
-    session_start();
+    //session_start();
     session_regenerate_id(TRUE);
     unset($_SESSION['user_id']);
     unset($_SESSION['token']);
